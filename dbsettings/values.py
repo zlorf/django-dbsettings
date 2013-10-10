@@ -208,6 +208,13 @@ class EmailValue(Value):
     def to_python(self, value):
         return six.text_type(value)
 
+class PasswordValue(Value):
+    class field(forms.CharField):
+        class widget(forms.PasswordInput):
+            def __init__(self, *args, **kwargs):
+                kwargs['render_value'] = True
+                forms.PasswordInput.__init__(self, *args, **kwargs)
+
 
 class MultiSeparatorValue(TextValue):
     """Provides a way to store list-like string settings.
