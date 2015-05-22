@@ -442,6 +442,8 @@ some of the settings provided earlier in this document::
 Changelog
 =========
 
+**0.8.1** (22/05/2015)
+    - Added 0001_initial migration. Now it is possible to setup database from scratch.
 **0.8.0** (16/04/2015)
     - Switched to using django.utils.six instead of standalone six.
     - Dropped compatibility with Django 1.3
