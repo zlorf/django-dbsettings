@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from django.core.cache import cache
+from django.conf import settings
 
+USE_CACHE = getattr(settings, 'DBSETTINGS_USE_CACHE', True)
 
 __all__ = ['get_all_settings', 'get_setting', 'get_setting_storage',
            'register_setting', 'unregister_setting', 'set_setting_value']
@@ -36,8 +38,10 @@ def setting_in_db(module_name, class_name, attribute_name):
 
 def get_setting_storage(module_name, class_name, attribute_name):
     from dbsettings.models import Setting
-    key = _get_cache_key(module_name, class_name, attribute_name)
-    storage = cache.get(key)
+    storage = None
+    if USE_CACHE:
+        key = _get_cache_key(module_name, class_name, attribute_name)
+        storage = cache.get(key)
     if storage is None:
         try:
             storage = Setting.objects.get(
@@ -53,7 +57,8 @@ def get_setting_storage(module_name, class_name, attribute_name):
                 attribute_name=attribute_name,
                 value=setting_object.default,
             )
-        cache.set(key, storage)
+        if USE_CACHE:
+            cache.set(key, storage)
     return storage
 
 
@@ -72,5 +77,6 @@ def set_setting_value(module_name, class_name, attribute_name, value):
     storage = get_setting_storage(module_name, class_name, attribute_name)
     storage.value = setting.get_db_prep_save(value)
     storage.save()
-    key = _get_cache_key(module_name, class_name, attribute_name)
-    cache.delete(key)
+    if USE_CACHE:
+        key = _get_cache_key(module_name, class_name, attribute_name)
+        cache.delete(key)
