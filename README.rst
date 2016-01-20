@@ -375,6 +375,17 @@ the following calculation would be valid::
     >>> 5.00 * myapp.taxes.sales_tax
     0.25
 
+PercentFloatValue
+------------
+
+Similar to ``PercentValue``, but supports Float values
+
+For instance, if a ``myapp.taxes.sales_tax`` was set to 6.5 in the editor,
+the following calculation would be valid::
+
+    >>> 5.00 * myapp.taxes.sales_tax
+    0.325
+
 PositiveIntegerValue
 --------------------
 
@@ -477,6 +488,8 @@ some of the settings provided earlier in this document::
 Changelog
 =========
 
+**0.9.2** (20/01/2016)
+    - Added ``PercentFloatValue``
 **0.9.1** (10/01/2016)
     - Fixed `Sites` app being optional (thanks rolexCoder)
 **0.9.0** (25/12/2015)

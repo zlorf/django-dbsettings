@@ -19,8 +19,8 @@ from dbsettings.loading import get_setting_storage, set_setting_value
 
 __all__ = ['Value', 'BooleanValue', 'DecimalValue', 'EmailValue',
            'DurationValue', 'FloatValue', 'IntegerValue', 'PercentValue',
-           'PositiveIntegerValue', 'StringValue', 'TextValue', 'PasswordValue',
-           'MultiSeparatorValue', 'ImageValue',
+           'PercentFloatValue', 'PositiveIntegerValue', 'StringValue',
+           'TextValue', 'PasswordValue', 'MultiSeparatorValue', 'ImageValue',
            'DateTimeValue', 'DateValue', 'TimeValue']
 
 
@@ -183,6 +183,23 @@ class PercentValue(Value):
 
     def to_python(self, value):
         return Decimal(value) / 100
+
+
+class PercentFloatValue(Value):
+
+    class field(forms.FloatField):
+
+        def __init__(self, *args, **kwargs):
+            forms.FloatField.__init__(self, *args, **kwargs)
+
+        class widget(forms.TextInput):
+            def render(self, *args, **kwargs):
+                # Place a percent sign after a smaller text field
+                attrs = kwargs.pop('attrs', {})
+                return forms.TextInput.render(self, attrs=attrs, *args, **kwargs) + '%'
+
+    def to_python(self, value):
+        return float(value) / 100
 
 
 class PositiveIntegerValue(IntegerValue):
