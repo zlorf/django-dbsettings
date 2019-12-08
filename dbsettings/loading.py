@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from django.core.cache import cache
 
+from .signals import setting_changed
 
 __all__ = ['get_all_settings', 'get_setting', 'get_setting_storage',
            'register_setting', 'unregister_setting', 'set_setting_value']
@@ -77,6 +78,7 @@ def set_setting_value(module_name, class_name, attribute_name, value):
     storage = get_setting_storage(module_name, class_name, attribute_name)
     storage.value = setting.get_db_prep_save(value)
     storage.save()
+    setting_changed.send(sender=setting)
     if USE_CACHE:
         key = _get_cache_key(module_name, class_name, attribute_name)
         cache.delete(key)

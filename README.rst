@@ -361,6 +361,17 @@ Since settings aren't related to individual model instances, any settings that
 are set on models may only be accessed by the model class itself. Attempting to
 access settings on an instance will raise an ``AttributeError``.
 
+Triggering actions on settings changes
+--------------------------------------
+
+A signal is sent whenever a setting changes. You can receive it by doing
+something like this in your appconfig's ``ready()`` method::
+
+    from dbsetting.loading import get_setting
+    from dbsettings.signals import setting_changed
+
+    setting_changed.connect(my_function, sender=get_setting('myapp', 'MyClass', 'myattr'))
+
 Value types
 ===========
 
