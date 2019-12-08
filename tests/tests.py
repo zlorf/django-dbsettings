@@ -3,7 +3,6 @@ import datetime
 import django
 from django.db import models
 from django import test
-from django.utils import six
 from django.utils.functional import curry
 from django.utils.translation import activate, deactivate
 
@@ -137,7 +136,7 @@ class SettingsTestCase(test.TestCase):
         # Values should be coerced to the proper Python types
         self.assertTrue(isinstance(Populated.settings.boolean, bool))
         self.assertTrue(isinstance(Populated.settings.integer, int))
-        self.assertTrue(isinstance(Populated.settings.string, six.string_types))
+        self.assertTrue(isinstance(Populated.settings.string, str))
 
         # Settings can not be accessed directly from models, only instances
         self.assertRaises(AttributeError, lambda: Populated().settings)

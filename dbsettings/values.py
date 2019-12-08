@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-from django.utils import six
 
 import datetime
 from decimal import Decimal
@@ -94,11 +93,11 @@ class Value(object):
 
     def get_db_prep_save(self, value):
         "Returns a value suitable for storage into a CharField"
-        return six.text_type(value)
+        return str(value)
 
     def to_editor(self, value):
         "Returns a value suitable for display in a form widget"
-        return six.text_type(value)
+        return str(value)
 
 ###############
 # VALUE TYPES #
@@ -154,7 +153,7 @@ class DurationValue(Value):
             raise forms.ValidationError('The maximum allowed value is %s' % datetime.timedelta.max)
 
     def get_db_prep_save(self, value):
-        return six.text_type(value.days * 24 * 3600 + value.seconds
+        return str(value.days * 24 * 3600 + value.seconds
                              + float(value.microseconds) / 1000000)
 
 
@@ -208,7 +207,7 @@ class TextValue(Value):
     field = forms.CharField
 
     def to_python(self, value):
-        return six.text_type(value)
+        return str(value)
 
 
 class EmailValue(Value):
@@ -216,7 +215,7 @@ class EmailValue(Value):
     field = forms.EmailField
 
     def to_python(self, value):
-        return six.text_type(value)
+        return str(value)
 
 
 class PasswordValue(Value):
@@ -262,7 +261,7 @@ class MultiSeparatorValue(TextValue):
 
     def to_python(self, value):
         if value:
-            value = six.text_type(value)
+            value = str(value)
             value = value.split(self.separator)
             value = [x.strip() for x in value]
         else:
@@ -300,14 +299,14 @@ class ImageValue(Value):
 
     def to_python(self, value):
         "Returns a native Python object suitable for immediate use"
-        return six.text_type(value)
+        return str(value)
 
     def get_db_prep_save(self, value):
         "Returns a value suitable for storage into a CharField"
         if not value:
             return None
 
-        hashed_name = md5(six.text_type(time.time()).encode()).hexdigest() + value.name[-4:]
+        hashed_name = md5(str(time.time()).encode()).hexdigest() + value.name[-4:]
         image_path = pjoin(self._upload_to, hashed_name)
         dest_name = pjoin(settings.MEDIA_ROOT, image_path)
         directory = pjoin(settings.MEDIA_ROOT, self._upload_to)
@@ -318,7 +317,7 @@ class ImageValue(Value):
             for chunk in value.chunks():
                 dest_file.write(chunk)
 
-        return six.text_type(image_path)
+        return str(image_path)
 
     def to_editor(self, value):
         "Returns a value suitable for display in a form widget"
@@ -354,7 +353,7 @@ class DateTimeValue(Value):
         return None
 
     def get_db_prep_save(self, value):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             return value
         return value.strftime(self._formats[0])
 

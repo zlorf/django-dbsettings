@@ -1,5 +1,4 @@
 import sys
-from django.utils import six
 
 from dbsettings.values import Value
 from dbsettings.loading import register_setting, unregister_setting
@@ -35,8 +34,7 @@ class GroupDescriptor(object):
         return self.group
 
 
-@six.add_metaclass(GroupBase)
-class Group(object):
+class Group(object, metaclass=GroupBase):
 
     def __new__(cls, verbose_name=None, copy=True, app_label=None):
         # If not otherwise provided, set the module to where it was executed

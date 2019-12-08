@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-from django.utils import six
 
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -49,7 +48,7 @@ def app_settings(request, app_label, template='dbsettings/app_settings.html'):
                     else:
                         location = setting.module_name
                     update_msg = (_('Updated %(desc)s on %(location)s') %
-                                  {'desc': six.text_type(setting.description),
+                                  {'desc': str(setting.description),
                                    'location': location})
                     messages.add_message(request, messages.INFO, update_msg)
 
