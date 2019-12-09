@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import MagicMock
 
 import django
 from django.db import models
@@ -8,7 +9,7 @@ from django.utils.functional import curry
 from django.utils.translation import activate, deactivate
 
 import dbsettings
-from dbsettings import loading, views
+from dbsettings import loading, signals, views
 
 from .models import TestSettings, Defaults, TestBaseModel, Populated, Unpopulated, Blankable, \
     Editable, Combined, ClashSettings1, ClashSettings2, ClashSettings1_2, ModelClash, NonReq, \
@@ -367,3 +368,22 @@ class SettingsTestCase(test.TestCase):
         response = self.client.get(url)
         self.assertEqual(present, global_setting in response.context[0][variable_name].fields)
         self.assertEqual(len(response.context[0][variable_name].fields), fields_num)
+
+    def test_signals(self):
+        handler = MagicMock()
+        setting = loading.get_setting(MODULE_NAME, 'Unpopulated', 'string')
+        signals.setting_changed.connect(handler, sender=setting)
+        Unpopulated.settings.string = 'signal fired'
+        handler.assert_called_once_with(signal=signals.setting_changed, sender=setting)
+
+        handler = MagicMock()
+        setting = loading.get_setting(MODULE_NAME, 'Populated', 'string')
+        signals.setting_changed.connect(handler, sender=setting)
+        Populated.settings.string = 'signal fired'
+        handler.assert_called_once_with(signal=signals.setting_changed, sender=setting)
+
+        handler = MagicMock()
+        setting = loading.get_setting(MODULE_NAME, 'Combined', 'string')
+        signals.setting_changed.connect(handler, sender=setting)
+        Combined.settings.string = 'signal fired'
+        handler.assert_called_once_with(signal=signals.setting_changed, sender=setting)
