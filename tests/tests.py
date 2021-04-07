@@ -135,10 +135,10 @@ class SettingsTestCase(test.TestCase):
         self.assertEqual(Defaults.settings.get_string_choices_display(), "Second String Choice")
 
         # Settings should be retrieved in the order of definition
-        self.assertEqual(Populated.settings.keys(),
+        self.assertEqual(list(Populated.settings.keys()),
                          ['boolean', 'integer', 'string', 'list_semi_colon',
                           'list_comma', 'date', 'time', 'datetime', 'string_choices'])
-        self.assertEqual(Combined.settings.keys(),
+        self.assertEqual(list(Combined.settings.keys()),
                          ['boolean', 'integer', 'string', 'list_semi_colon',
                           'list_comma', 'date', 'time', 'datetime', 'string_choices', 'enabled'])
 

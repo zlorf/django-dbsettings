@@ -90,7 +90,8 @@ class Value(object):
 
     def __set__(self, instance, value):
         current_value = self.__get__(instance)
-        if self.to_python(value) != current_value:
+        python_value = value if value is None else self.to_python(value)
+        if python_value != current_value:
             set_setting_value(*(self.key + (value,)))
 
     # Subclasses should override the following methods where applicable
@@ -276,7 +277,7 @@ class MultiSeparatorValue(TextValue):
         if value:
             value = str(value)
             value = value.split(self.separator)
-            value = [x.strip() for x in value]
+            value = [_f for _f in (x.strip() for x in value) if _f]
         else:
             value = []
         return value

@@ -12,7 +12,7 @@ def mk_permissions(permissions, appname, verbosity):
     from django.contrib.contenttypes.models import ContentType
     # create a content type for the app
     defaults = {} if VERSION >= (1, 10) else {'name': appname}
-    ct, created = ContentType.objects.get_or_create(model='', app_label=appname,
+    ct, created = ContentType.objects.get_or_create(model='setting', app_label='dbsettings',
                                                     defaults=defaults)
     if created and verbosity >= 2:
         print("Adding custom content type '%s'" % ct)
@@ -31,10 +31,10 @@ def handler(sender, **kwargs):
     are_global_settings = any(not s.class_name for s in get_app_settings(app_label))
     if are_global_settings:
         permission = (
-            'can_edit__settings',
+            'can_edit_%s_settings' % app_label,
             'Can edit %s non-model settings' % app_label,
         )
-        mk_permissions([permission], app_label, 0)
+        mk_permissions([permission], app_label, verbosity=kwargs.get('verbosity', 0))
 
 
 post_migrate.connect(handler)
