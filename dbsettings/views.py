@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.text import capfirst
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
 
 from dbsettings import loading, forms
@@ -59,6 +59,7 @@ def app_settings(request, app_label, template='dbsettings/app_settings.html'):
 
     return render(request, template, {
         'title': title,
+        'no_settings': len(settings) == 0,
         'form': form,
     })
 

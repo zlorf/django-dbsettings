@@ -19,7 +19,9 @@
     {% blocktrans count form.errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
     </p>
 {% endif %}
-{% if form.fields %}
+{% if no_settings %}
+    <p>{% trans "No settings were defined." %}</p>
+{% elif form.fields %}
 {% regroup form by module_name as modules %}
 <form enctype="multipart/form-data" method="post">
     {% for module in modules %}

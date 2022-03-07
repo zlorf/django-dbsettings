@@ -52,6 +52,7 @@ class SettingsTestCase(test.TestCase):
         loading.set_setting_value(MODULE_NAME, 'Populated', 'date', '2012-06-28')
         loading.set_setting_value(MODULE_NAME, 'Populated', 'time', '16:19:17')
         loading.set_setting_value(MODULE_NAME, 'Populated', 'datetime', '2012-06-28 16:19:17')
+        loading.set_setting_value(MODULE_NAME, 'Populated', 'string_choices', 'String1')
         loading.set_setting_value(MODULE_NAME, '', 'boolean', False)
         loading.set_setting_value(MODULE_NAME, '', 'integer', 14)
         loading.set_setting_value(MODULE_NAME, '', 'string', 'Module')
@@ -71,6 +72,7 @@ class SettingsTestCase(test.TestCase):
         loading.set_setting_value(MODULE_NAME, 'Combined', 'date', '2010-04-26')
         loading.set_setting_value(MODULE_NAME, 'Combined', 'time', '14:17:15')
         loading.set_setting_value(MODULE_NAME, 'Combined', 'datetime', '2010-04-26 14:17:15')
+        loading.set_setting_value(MODULE_NAME, 'Combined', 'string_choices', 'String1')
         loading.set_setting_value(MODULE_NAME, 'Combined', 'enabled', True)
 
     def test_settings(self):
@@ -85,6 +87,8 @@ class SettingsTestCase(test.TestCase):
         self.assertEqual(Populated.settings.date, datetime.date(2012, 6, 28))
         self.assertEqual(Populated.settings.time, datetime.time(16, 19, 17))
         self.assertEqual(Populated.settings.datetime, datetime.datetime(2012, 6, 28, 16, 19, 17))
+        self.assertEqual(Populated.settings.string_choices, "String1")
+        self.assertEqual(Populated.settings.get_string_choices_display(), "First String Choice")
 
         # Module settings are kept separate from model settings
         self.assertEqual(module_settings.boolean, False)
@@ -106,6 +110,9 @@ class SettingsTestCase(test.TestCase):
         self.assertEqual(Combined.settings.date, datetime.date(2010, 4, 26))
         self.assertEqual(Combined.settings.time, datetime.time(14, 17, 15))
         self.assertEqual(Combined.settings.datetime, datetime.datetime(2010, 4, 26, 14, 17, 15))
+        self.assertEqual(Combined.settings.string_choices, "String1")
+        self.assertEqual(Combined.settings.get_string_choices_display(), "First String Choice")
+
 
         # Settings not in the database use empty defaults
         self.assertEqual(Unpopulated.settings.boolean, False)
@@ -124,14 +131,16 @@ class SettingsTestCase(test.TestCase):
         self.assertEqual(Defaults.settings.date, datetime.date(2012, 3, 14))
         self.assertEqual(Defaults.settings.time, datetime.time(12, 3, 14))
         self.assertEqual(Defaults.settings.datetime, datetime.datetime(2012, 3, 14, 12, 3, 14))
+        self.assertEqual(Defaults.settings.string_choices, "String2")
+        self.assertEqual(Defaults.settings.get_string_choices_display(), "Second String Choice")
 
         # Settings should be retrieved in the order of definition
         self.assertEqual(Populated.settings.keys(),
                          ['boolean', 'integer', 'string', 'list_semi_colon',
-                          'list_comma', 'date', 'time', 'datetime'])
+                          'list_comma', 'date', 'time', 'datetime', 'string_choices'])
         self.assertEqual(Combined.settings.keys(),
                          ['boolean', 'integer', 'string', 'list_semi_colon',
-                          'list_comma', 'date', 'time', 'datetime', 'enabled'])
+                          'list_comma', 'date', 'time', 'datetime', 'string_choices', 'enabled'])
 
         # Values should be coerced to the proper Python types
         self.assertTrue(isinstance(Populated.settings.boolean, bool))
@@ -319,6 +328,7 @@ class SettingsTestCase(test.TestCase):
             '%s__Editable__date' % MODULE_NAME: '2012-06-28',
             '%s__Editable__time' % MODULE_NAME: '16:37:45',
             '%s__Editable__datetime' % MODULE_NAME: '2012-06-28 16:37:45',
+            '%s__Editable__string_choices' % MODULE_NAME: 'String1',
         }
         response = self.client.post(site_form, data)
         self.assertRedirects(response, site_form)
@@ -351,15 +361,15 @@ class SettingsTestCase(test.TestCase):
         user.user_permissions.remove(perm)
 
         # Check if module level settings show properly
-        self._test_form_fields(site_form, 8, False)
+        self._test_form_fields(site_form, 9, False)
         # Add perm for whole app
         perm = Permission.objects.get(codename='can_edit__settings')  # module-level settings
         user.user_permissions.add(perm)
-        self._test_form_fields(site_form, 18)
+        self._test_form_fields(site_form, 20)
         # Remove other perms - left only global perm
         perm = Permission.objects.get(codename='can_edit_editable_settings')
         user.user_permissions.remove(perm)
-        self._test_form_fields(site_form, 10)
+        self._test_form_fields(site_form, 11)
 
     def _test_form_fields(self, url, fields_num, present=True, variable_name='form'):
         global_setting = '%s____clash2' % MODULE_NAME  # Some global setting name

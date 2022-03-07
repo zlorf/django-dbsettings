@@ -4,6 +4,9 @@ from dbsettings.values import Value
 from dbsettings.loading import register_setting, unregister_setting
 from dbsettings.management import mk_permissions
 
+from django.utils.encoding import force_str
+from django.utils.hashable import make_hashable
+
 __all__ = ['Group']
 
 
@@ -36,7 +39,7 @@ class GroupDescriptor(object):
 
 class Group(object, metaclass=GroupBase):
 
-    def __new__(cls, verbose_name=None, copy=True, app_label=None):
+    def __new__(cls, verbose_name='', copy=True, app_label=None):
         # If not otherwise provided, set the module to where it was executed
         if '__module__' in cls.__dict__:
             module_name = cls.__dict__['__module__']
@@ -51,8 +54,7 @@ class Group(object, metaclass=GroupBase):
         for _, attr in attrs:
             attr.creation_counter = Value.creation_counter
             Value.creation_counter += 1
-            if not hasattr(attr, 'verbose_name'):
-                attr.verbose_name = verbose_name
+            attr.verbose_name = verbose_name
             if app_label:
                 attr._app = app_label
             register_setting(attr)
@@ -116,3 +118,9 @@ class Group(object, metaclass=GroupBase):
 
     def values(self):
         return [v for (_, v) in self]
+
+    def _get_FIELD_display(self, field):
+        value = getattr(self, field.attribute_name)
+        choices_dict = dict(make_hashable(field.choices))
+        # force_str() to coerce lazy strings.
+        return force_str(choices_dict.get(make_hashable(value), value), strings_only=True)

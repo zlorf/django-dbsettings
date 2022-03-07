@@ -37,11 +37,14 @@ def setting_in_db(module_name, class_name, attribute_name):
 
 def get_setting_storage(module_name, class_name, attribute_name):
     from dbsettings.models import Setting
-    from dbsettings.settings import USE_CACHE
+    from dbsettings.settings import USE_CACHE, CACHE_EXPIRATION
     storage = None
     if USE_CACHE:
         key = _get_cache_key(module_name, class_name, attribute_name)
-        storage = cache.get(key)
+        try:
+            storage = cache.get(key)
+        except:
+            pass
     if storage is None:
         try:
             storage = Setting.objects.get(
@@ -58,7 +61,13 @@ def get_setting_storage(module_name, class_name, attribute_name):
                 value=setting_object.default,
             )
         if USE_CACHE:
-            cache.set(key, storage)
+            try:
+                args = []
+                if CACHE_EXPIRATION != -1:
+                    args.append(CACHE_EXPIRATION)
+                cache.set(key, storage, *args)
+            except:
+                pass
     return storage
 
 

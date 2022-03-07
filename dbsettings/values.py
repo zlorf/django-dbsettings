@@ -4,15 +4,16 @@ import datetime
 from decimal import Decimal
 from hashlib import md5
 from os.path import join as pjoin
+from functools import partialmethod
 import time
 import os
 
 from django import forms
-from django.conf import settings
+from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import formats
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from dbsettings.loading import get_setting_storage, set_setting_value
 
@@ -62,6 +63,16 @@ class Value(object):
         self.description = self.description or attribute_name.replace('_', ' ')
 
         setattr(cls, self.attribute_name, self)
+
+        if self.choices is not None:
+            # Allows for adding get_FIELD_display() to fields with choices.
+            display_attribute = 'get_%s_display' % attribute_name
+            if display_attribute not in cls.__dict__:
+                setattr(
+                    cls,
+                    display_attribute,
+                    partialmethod(cls._get_FIELD_display, field=self),
+                )
 
     @property
     def app(self):
@@ -287,9 +298,7 @@ class ImageValue(Value):
                 context = self.get_context(name, value, attrs)
 
                 if value:
-                    from PIL import Image
-                    Image.open(value.file)
-                    context['image_url'] = pjoin(settings.MEDIA_URL, value.name).replace("\\", "/")
+                    context['image_url'] = default_storage.url(value.name)
                 else:
                     context['image_url'] = None
 
@@ -306,20 +315,13 @@ class ImageValue(Value):
 
         hashed_name = md5(str(time.time()).encode()).hexdigest() + value.name[-4:]
         image_path = pjoin(self._upload_to, hashed_name)
-        dest_name = pjoin(settings.MEDIA_ROOT, image_path)
-        directory = pjoin(settings.MEDIA_ROOT, self._upload_to)
 
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        with open(dest_name, 'wb+') as dest_file:
-            for chunk in value.chunks():
-                dest_file.write(chunk)
+        image_path = default_storage.save(image_path, value.file)
 
         # Delete old file
         if oldvalue and self._delete_old:
-            old_dest_name = pjoin(settings.MEDIA_ROOT, oldvalue)
-            if os.path.exists(old_dest_name):
-                os.unlink(old_dest_name)
+            if default_storage.exists(oldvalue):
+                default_storage.delete(oldvalue)
 
         return str(image_path)
 
@@ -328,9 +330,8 @@ class ImageValue(Value):
         if not value:
             return None
 
-        file_name = pjoin(settings.MEDIA_ROOT, value)
         try:
-            with open(file_name, 'rb') as f:
+            with default_storage.open(value, 'rb') as f:
                 uploaded_file = SimpleUploadedFile(value, f.read(), 'image')
 
                 # hack to retrieve path from `name` attribute

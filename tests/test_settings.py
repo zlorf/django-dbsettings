@@ -26,6 +26,9 @@ SITE_ID= 1
 
 ROOT_URLCONF = 'tests.test_urls'
 
+# Required for Django 4.0
+STATIC_URL = '/static/'
+
 DATABASES =  {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -35,6 +38,8 @@ DATABASES =  {
         #}
     }
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -56,4 +61,3 @@ TEMPLATES = [
         },
     },
 ]
-
