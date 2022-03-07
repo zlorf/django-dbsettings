@@ -6,7 +6,7 @@ if version_tuple[2] is not None:
     if type(version_tuple[2]) == int:
         version = "%d.%d.%s" % version_tuple
     else:
-        version = "%d.%d_%s" % version_tuple
+        version = "%d.%d+%s" % version_tuple
 else:
     version = "%d.%d" % version_tuple[:2]
 
