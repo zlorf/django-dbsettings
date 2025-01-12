@@ -17,6 +17,8 @@ class GroupBase(type):
         attrs.pop('__module__', None)
         attrs.pop('__doc__', None)
         attrs.pop('__qualname__', None)
+        attrs.pop('__firstlineno__', None)
+        attrs.pop('__static_attributes__', None)
         for attribute_name, attr in attrs.items():
             if not isinstance(attr, Value):
                 raise TypeError('The type of %s (%s) is not a valid Value.' %
