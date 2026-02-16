@@ -14,7 +14,7 @@ class TestSettings(dbsettings.Group):
     time = dbsettings.TimeValue()
     datetime = dbsettings.DateTimeValue()
     string_choices = dbsettings.StringValue(choices=(("String1", "First String Choice"), ("String2", "Second String Choice")))
-
+    no_caching_string = dbsettings.StringValue(disable_cache=True)
 
 class Defaults(models.Model):
     class settings(dbsettings.Group):

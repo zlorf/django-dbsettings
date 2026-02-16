@@ -39,7 +39,10 @@ def get_setting_storage(module_name, class_name, attribute_name):
     from dbsettings.models import Setting
     from dbsettings.settings import USE_CACHE, CACHE_EXPIRATION
     storage = None
-    if USE_CACHE:
+    setting_object = get_setting(module_name, class_name, attribute_name)
+    can_cache = USE_CACHE and not setting_object.disable_cache
+
+    if can_cache:
         key = _get_cache_key(module_name, class_name, attribute_name)
         try:
             storage = cache.get(key)
@@ -53,14 +56,13 @@ def get_setting_storage(module_name, class_name, attribute_name):
                 attribute_name=attribute_name,
             )
         except Setting.DoesNotExist:
-            setting_object = get_setting(module_name, class_name, attribute_name)
             storage = Setting(
                 module_name=module_name,
                 class_name=class_name,
                 attribute_name=attribute_name,
                 value=setting_object.default,
             )
-        if USE_CACHE:
+        if can_cache:
             try:
                 args = []
                 if CACHE_EXPIRATION != -1:
@@ -88,6 +90,6 @@ def set_setting_value(module_name, class_name, attribute_name, value):
     storage.value = setting.get_db_prep_save(value, oldvalue=storage.value)
     storage.save()
     setting_changed.send(sender=setting, value=setting.to_python(value))
-    if USE_CACHE:
+    if USE_CACHE and not setting.disable_cache:
         key = _get_cache_key(module_name, class_name, attribute_name)
         cache.delete(key)

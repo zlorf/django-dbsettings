@@ -53,6 +53,7 @@ class SettingsTestCase(test.TestCase):
         loading.set_setting_value(MODULE_NAME, 'Populated', 'time', '16:19:17')
         loading.set_setting_value(MODULE_NAME, 'Populated', 'datetime', '2012-06-28 16:19:17')
         loading.set_setting_value(MODULE_NAME, 'Populated', 'string_choices', 'String1')
+        loading.set_setting_value(MODULE_NAME, 'Populated', 'no_caching_string', 'Populated: Not Cached String')
         loading.set_setting_value(MODULE_NAME, '', 'boolean', False)
         loading.set_setting_value(MODULE_NAME, '', 'integer', 14)
         loading.set_setting_value(MODULE_NAME, '', 'string', 'Module')
@@ -73,6 +74,7 @@ class SettingsTestCase(test.TestCase):
         loading.set_setting_value(MODULE_NAME, 'Combined', 'time', '14:17:15')
         loading.set_setting_value(MODULE_NAME, 'Combined', 'datetime', '2010-04-26 14:17:15')
         loading.set_setting_value(MODULE_NAME, 'Combined', 'string_choices', 'String1')
+        loading.set_setting_value(MODULE_NAME, 'Combined', 'no_caching_string', 'Combined: Not Cached String')
         loading.set_setting_value(MODULE_NAME, 'Combined', 'enabled', True)
 
     def test_settings(self):
@@ -89,6 +91,7 @@ class SettingsTestCase(test.TestCase):
         self.assertEqual(Populated.settings.datetime, datetime.datetime(2012, 6, 28, 16, 19, 17))
         self.assertEqual(Populated.settings.string_choices, "String1")
         self.assertEqual(Populated.settings.get_string_choices_display(), "First String Choice")
+        self.assertEqual(Populated.settings.no_caching_string, "Populated: Not Cached String")
 
         # Module settings are kept separate from model settings
         self.assertEqual(module_settings.boolean, False)
@@ -112,7 +115,7 @@ class SettingsTestCase(test.TestCase):
         self.assertEqual(Combined.settings.datetime, datetime.datetime(2010, 4, 26, 14, 17, 15))
         self.assertEqual(Combined.settings.string_choices, "String1")
         self.assertEqual(Combined.settings.get_string_choices_display(), "First String Choice")
-
+        self.assertEqual(Combined.settings.no_caching_string, "Combined: Not Cached String")
 
         # Settings not in the database use empty defaults
         self.assertEqual(Unpopulated.settings.boolean, False)
@@ -137,10 +140,10 @@ class SettingsTestCase(test.TestCase):
         # Settings should be retrieved in the order of definition
         self.assertEqual(Populated.settings.keys(),
                          ['boolean', 'integer', 'string', 'list_semi_colon',
-                          'list_comma', 'date', 'time', 'datetime', 'string_choices'])
+                          'list_comma', 'date', 'time', 'datetime', 'string_choices', 'no_caching_string',])
         self.assertEqual(Combined.settings.keys(),
                          ['boolean', 'integer', 'string', 'list_semi_colon',
-                          'list_comma', 'date', 'time', 'datetime', 'string_choices', 'enabled'])
+                          'list_comma', 'date', 'time', 'datetime', 'string_choices', 'no_caching_string', 'enabled',])
 
         # Values should be coerced to the proper Python types
         self.assertTrue(isinstance(Populated.settings.boolean, bool))
@@ -166,6 +169,7 @@ class SettingsTestCase(test.TestCase):
                                   datetime.time(1, 2, 3))
         loading.set_setting_value(MODULE_NAME, 'Unpopulated', 'datetime',
                                   datetime.datetime(1912, 6, 23, 1, 2, 3))
+        loading.set_setting_value(MODULE_NAME, "Unpopulated", "no_caching_string",  "Unpopulated: Not Cached String")
 
         self.assertEqual(Unpopulated.settings.boolean, True)
         self.assertEqual(Unpopulated.settings.integer, 13)
@@ -175,6 +179,7 @@ class SettingsTestCase(test.TestCase):
         self.assertEqual(Unpopulated.settings.date, datetime.date(1912, 6, 23))
         self.assertEqual(Unpopulated.settings.time, datetime.time(1, 2, 3))
         self.assertEqual(Unpopulated.settings.datetime, datetime.datetime(1912, 6, 23, 1, 2, 3))
+        self.assertEqual(Unpopulated.settings.no_caching_string, "Unpopulated: Not Cached String")
 
         # Updating settings with defaults
         loading.set_setting_value(MODULE_NAME, 'Defaults', 'boolean', False)
@@ -329,6 +334,7 @@ class SettingsTestCase(test.TestCase):
             '%s__Editable__time' % MODULE_NAME: '16:37:45',
             '%s__Editable__datetime' % MODULE_NAME: '2012-06-28 16:37:45',
             '%s__Editable__string_choices' % MODULE_NAME: 'String1',
+            '%s__Editable__no_caching_string' % MODULE_NAME: 'Get my string!',
         }
         response = self.client.post(site_form, data)
         self.assertRedirects(response, site_form)
@@ -361,15 +367,15 @@ class SettingsTestCase(test.TestCase):
         user.user_permissions.remove(perm)
 
         # Check if module level settings show properly
-        self._test_form_fields(site_form, 9, False)
+        self._test_form_fields(site_form, 10, False)
         # Add perm for whole app
         perm = Permission.objects.get(codename='can_edit__settings')  # module-level settings
         user.user_permissions.add(perm)
-        self._test_form_fields(site_form, 20)
+        self._test_form_fields(site_form, 22)
         # Remove other perms - left only global perm
         perm = Permission.objects.get(codename='can_edit_editable_settings')
         user.user_permissions.remove(perm)
-        self._test_form_fields(site_form, 11)
+        self._test_form_fields(site_form, 12)
 
     def _test_form_fields(self, url, fields_num, present=True, variable_name='form'):
         global_setting = '%s____clash2' % MODULE_NAME  # Some global setting name
